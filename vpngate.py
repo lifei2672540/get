@@ -174,13 +174,15 @@ def parse_csv(text):
     if "openvpn_configdata_base64" not in idx:
         for i, h in enumerate(header):
             if "base64" in h.lower():
-                idx["openvpn_configdata_base64"] = i
+                idx[openvpn_configdata_base64] = i
                 break
-    pos = {"hostname": idx.get("hostname", 0),
-           "ip": idx.get("ip", 1),
-           "countrylong": idx.get("countrylong", 5),
-           "countryshort": idx.get("countryshort", 6),
-           "openvpn_configdata_base64": idx.get("openvpn_configdata_base64", len(header) - 1)}
+    pos = {
+        "hostname": idx.get("hostname", 0),
+        "ip": idx.get("ip", 1),
+        "countrylong": idx.get("countrylong", 5),
+        "countryshort": idx.get("countryshort", 6),
+        "openvpn_configdata_base64": idx.get("openvpn_configdata_base64", len(header) - 1),
+    }
 
     rows = []
     for ln in data_lines:
@@ -330,7 +332,7 @@ def check_one(node, session):
         out["status"] = "success" if ok else "failed"
         out["latency_ms"] = j.get("responseTime")
         out["colo"] = j.get("colo")
-        out["error"] = (None if ok else (j.get("error") or j.get("message") or "check failed"))
+        out["error"] = None if ok else (j.get("error") or j.get("message") or "check failed")
         # SSTP 版 Worker: 顶层直接返回 exit, 含真实 is_datacenter 标志 + 嵌套 asn 对象
         exit_info = j.get("exit") or {}
         if exit_info:
@@ -420,7 +422,7 @@ def build_chains_text(data):
         f"# 固定地址: {CHAIN_URL}",
         "#",
         "# 用法: 在 edgetunnel 节点备注里直接粘贴下面任意一行 (名字与指令连写)",
-        "#   例: 日本-住宅-01$sstp://vpn:vpn@vpnxxx.opengw.net:443",
+        "#    例: 日本-住宅-01$sstp://vpn:vpn@vpnxxx.opengw.net:443",
         "# 名字保持不变, 只有 $sstp:// 后面的地址每 30 分钟自动更换",
         "# 账号密码固定 vpn:vpn ; 端口必须保留",
         "# ========================================================",
@@ -459,11 +461,11 @@ def build_chains_text(data):
 EDGE_HOSTS = [
     h.strip()
     for h in os.environ.get(
-       "EDGE_HOSTS",
-"uptimerobot.com:443,www.government.is:443,cdnjs.loli.net:443,crinacle.com:443,"
-"snipaste1.speedip.eu.org:443,www.whoer.net:443,www.ventusky.com:443,www.petronaftco.com:443,"
-"dx.doi.org:443,zen-browser.app:443,icook.tw:443,codexradar.com:443,"
-"dogechain.info:443,a.pub.network:443,www.whatismyip.com:443,hitcon.org:443",
+        "EDGE_HOSTS",
+        "uptimerobot.com:443,www.government.is:443,cdnjs.loli.net:443,crinacle.com:443,"
+        "snipaste1.speedip.eu.org:443,www.whoer.net:443,www.ventusky.com:443,www.petronaftco.com:443,"
+        "dx.doi.org:443,zen-browser.app:443,icook.tw:443,codexradar.com:443,"
+        "dogechain.info:443,a.pub.network:443,www.whatismyip.com:443,hitcon.org:443",
     ).split(",")
     if h.strip()
 ]
@@ -618,9 +620,11 @@ def write_outputs(data):
         with open(TEMPLATE_HTML, "r", encoding="utf-8") as f:
             html = f.read()
     else:
-        html = ("<html><head><meta charset='utf-8'><title>VPN Gate SSTP 节点</title></head>"
-                "<body><h1>VPN Gate SSTP 节点</h1><pre id='out'></pre></body>"
-                "<script>fetch('data.json').then(r=>r.json()).then(d=>out.textContent=JSON.stringify(d.stats)).catch(e=>out.textContent='加载失败:'+e)</script></html>")
+        html = (
+            "<html><head><meta charset='utf-8'><title>VPN Gate SSTP 节点</title></head>"
+            "<body><h1>VPN Gate SSTP 节点</h1><pre id='out'></pre></body>"
+            "<script>fetch('data.json').then(r=>r.json()).then(d=>out.textContent=JSON.stringify(d.stats)).catch(e=>out.textContent='加载失败:'+e)</script></html>"
+        )
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
 
